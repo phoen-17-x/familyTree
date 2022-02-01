@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Family Tree</title>
+</head>
+<body>
+    <div th:if="${!parents.isEmpty()}">
+        <p>Parents</p>
+        <div th:each="parent : ${parents}">
+            <a th:href="@{/{id}(id = ${parent.getId()})}" th:text="${parent.getName()}"></a>
+            <a th:href="@{/{id}/parents(id = ${parent.getId()})}">+</a>
+            <form th:method="DELETE" th:action="@{/{id}(id=${parent.getId()})}">
+                <input type="submit" value="Delete" />
+            </form>
+        </div>
+    </div>
+    <p>Person</p>
+    <a th:href="@{/{id}(id = ${person.getId()})}" th:text="${person.getName()}"></a>
+    <a th:href="@{/{id}/parents(id = ${person.getId})}">+</a>
+    <form th:method="DELETE" th:action="@{/{id}(id=${person.getId()})}">
+        <input type="submit" value="Delete" />
+    </form>
+    <div th:if="${spouse}">
+        <p>Spouse</p>
+        <a th:href="@{/{id}(id = ${spouse.getId()})}" th:text="${spouse.getName()}"></a>
+        <a th:href="@{/{id}/parents(id = ${spouse.getId})}">+</a>
+        <form th:method="DELETE" th:action="@{/{id}(id=${spouse.getId()})}">
+            <input type="submit" value="Delete" />
+        </form>
+    </div>
+    <div th:if="${!children.isEmpty()}">
+        <p>Children</p>
+        <div th:each="child : ${children}">
+            <a th:href="@{/{id}(id = ${child.getId()})}" th:text="${child.getName()}"></a>
+            <a th:href="@{/{id}/parents(id = ${child.getId})}">+</a>
+            <form th:method="DELETE" th:action="@{/{id}(id=${child.getId()})}">
+                <input type="submit" value="Delete" />
+            </form>
+        </div>
+    </div>
+</body>
+</html>

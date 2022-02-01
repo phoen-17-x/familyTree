@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Parents</title>
+</head>
+<body>
+    <form th:method="POST" th:action="@{/{id}/parents (id = ${id})}" th:object="${parents}">
+        <label for="mother">Mother: </label>
+        <input type="text" th:field="*{parentName1}" id="mother" />
+        <p style="color: red" th:if="${#fields.hasErrors('parentName1')}" th:errors="*{parentName1}">Name errors</p>
+        <label for="father">Father: </label>
+        <input type="text" th:field="*{parentName2}" id="father" />
+        <p style="color: red" th:if="${#fields.hasErrors('parentName2')}" th:errors="*{parentName2}">Name errors</p>
+
+        <input type="submit" value="OK"/>
+    </form>
+</body>
+</html>
