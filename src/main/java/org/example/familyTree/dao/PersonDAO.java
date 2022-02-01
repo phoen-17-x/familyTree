@@ -19,11 +19,16 @@ public class PersonDAO {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    public Integer getRandomPersonID() {
+        return jdbcTemplate.queryForObject(
+                "SELECT id FROM family OFFSET floor(random() * (SELECT COUNT(*) FROM family)) LIMIT 1",
+                Integer.class);
+    }
+
     public Person getPerson(int id) {
 
         return jdbcTemplate.query("SELECT * FROM family WHERE ID = ?",
-                        new Object[]{id},
-                        new BeanPropertyRowMapper<>(Person.class))
+                        new BeanPropertyRowMapper<>(Person.class), id)
                 .stream().findAny().orElse(null);
 
     }
@@ -32,8 +37,7 @@ public class PersonDAO {
 
         return jdbcTemplate.query(
                 "SELECT * FROM family WHERE id IN (SELECT parent_id FROM relation WHERE child_id = ?)",
-                new Object[]{id},
-                new BeanPropertyRowMapper<>(Person.class));
+                new BeanPropertyRowMapper<>(Person.class), id);
 
     }
 
@@ -41,8 +45,7 @@ public class PersonDAO {
 
         return jdbcTemplate.query(
                 "SELECT * FROM family WHERE id IN (SELECT child_id FROM relation WHERE parent_id = ?)",
-                new Object[]{id},
-                new BeanPropertyRowMapper<>(Person.class));
+                new BeanPropertyRowMapper<>(Person.class), id);
 
     }
 
@@ -52,13 +55,11 @@ public class PersonDAO {
 
         Integer firstParentID = jdbcTemplate.queryForObject(
                 "INSERT INTO family (name) VALUES (?) RETURNING id",
-                new Object[]{parents.getParentName1()},
-                Integer.class);
+                Integer.class, parents.getParentName1());
 
         Integer secondParentID = jdbcTemplate.queryForObject(
                 "INSERT INTO family (name, spouse_id) VALUES (?, ?) RETURNING id",
-                new Object[]{parents.getParentName2(), firstParentID},
-                Integer.class);
+                Integer.class, parents.getParentName2(), firstParentID);
 
         jdbcTemplate.update(
                 "UPDATE family SET spouse_id = ? WHERE id = ?",
@@ -74,8 +75,7 @@ public class PersonDAO {
 
         Integer spouseID = jdbcTemplate.queryForObject(
                 "INSERT INTO family (name, spouse_id) VALUES (?, ?) RETURNING id",
-                new Object[]{person.getName(), person.getSpouse_id()},
-                Integer.class);
+                Integer.class, person.getName(), person.getSpouse_id());
 
         jdbcTemplate.update(
                 "UPDATE family SET spouse_id = ? WHERE id = ?", spouseID, person.getSpouse_id());
@@ -86,13 +86,11 @@ public class PersonDAO {
 
         Integer childID = jdbcTemplate.queryForObject(
                 "INSERT INTO family (name) VALUES (?) RETURNING id",
-                new Object[]{person.getName()},
-                Integer.class);
+                Integer.class, person.getName());
 
         Integer spouseID = jdbcTemplate.queryForObject(
                 "SELECT spouse_id FROM family WHERE id = ?",
-                new Object[]{id},
-                Integer.class);
+                Integer.class, id);
 
         jdbcTemplate.update(
                 "INSERT INTO relation (parent_id, child_id) VALUES (?, ?), (?, ?)",
@@ -100,7 +98,25 @@ public class PersonDAO {
 
     }
 
+    // Deletes person, their parents, grandparents, etc.
+    // Same process for person's spouse
     public void deletePerson(Integer id) {
+
+        // Recursively deletes rows from "relation" starting with specified element
+        String recursiveSQL = "WITH RECURSIVE cte AS (SELECT parent_id, child_id FROM relation WHERE parent_id = ? UNION ALL " +
+                "SELECT t.parent_id, t.child_id FROM relation t INNER JOIN cte c on c.parent_id = t.child_id" +
+                ") DELETE FROM relation WHERE parent_id IN (SELECT parent_id FROM cte)";
+
+        // Deletes everyone who is not in "relation"
+        String deleteSQL = "DELETE FROM family WHERE id NOT IN (SELECT parent_id FROM relation) " +
+                "AND id NOT IN (SELECT child_id FROM relation)";
+
+        Integer spouseID = getPerson(id).getSpouse_id();
+
+        jdbcTemplate.update(recursiveSQL, id);
+        jdbcTemplate.update(recursiveSQL, spouseID);
+
+        jdbcTemplate.update(deleteSQL);
 
     }
 }

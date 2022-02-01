@@ -20,6 +20,14 @@ public class PeopleController {
         this.personDAO = personDAO;
     }
 
+    @GetMapping
+    public String index() {
+
+        Integer id = personDAO.getRandomPersonID();
+        return String.format("redirect:/%d", id);
+
+    }
+
     @GetMapping("/{id}")
     public String getRelatives(@PathVariable("id") int id,
                                Model model) {
@@ -32,13 +40,17 @@ public class PeopleController {
             model.addAttribute("spouse", personDAO.getPerson(spouseID));
         model.addAttribute("parents", personDAO.getParents(id));
         model.addAttribute("children", personDAO.getChildren(id));
+
         return "index";
+
     }
 
     @GetMapping("/{id}/parents")
     public String addParents(@ModelAttribute("parents") Parents parents,
                              @ModelAttribute("id") @PathVariable("id") Integer id) {
+
         return "parentsform";
+
     }
 
     @PostMapping("{id}/parents")
@@ -51,13 +63,17 @@ public class PeopleController {
 
         parents.setChildID(id);
         personDAO.addParents(parents);
+
         return String.format("redirect:/%d", id);
+
     }
 
     @GetMapping("/{id}/spouse")
     public String addSpouse(@ModelAttribute("person") Person person,
                             @ModelAttribute("id") @PathVariable("id") Integer id) {
+
         return "spouseform";
+
     }
 
     @PostMapping("{id}/spouse")
@@ -71,12 +87,15 @@ public class PeopleController {
         person.setSpouse_id(id);
         personDAO.addSpouse(person);
         return String.format("redirect:/%d", id);
+
     }
 
     @GetMapping("/{id}/child")
     public String addChild(@ModelAttribute("person") Person person,
                             @ModelAttribute("id") @PathVariable("id") Integer id) {
+
         return "childform";
+
     }
 
     @PostMapping("{id}/child")
@@ -89,12 +108,14 @@ public class PeopleController {
 
         personDAO.addChild(person, id);
         return String.format("redirect:/%d", id);
+
     }
 
     @DeleteMapping("/{id}")
     public String deletePerson(@PathVariable("id") Integer id) {
-        personDAO.deletePerson(id);
 
-        return "redirect:/1";
+        personDAO.deletePerson(id);
+        return "redirect:";
+
     }
 }
