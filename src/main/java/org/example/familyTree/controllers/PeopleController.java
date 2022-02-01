@@ -20,6 +20,7 @@ public class PeopleController {
         this.personDAO = personDAO;
     }
 
+    // Redirect to random person in family tree
     @GetMapping
     public String index() {
 
@@ -28,6 +29,7 @@ public class PeopleController {
 
     }
 
+    // Create model with person, their spouse, parents and children
     @GetMapping("/{id}")
     public String getRelatives(@PathVariable("id") int id,
                                Model model) {
@@ -45,6 +47,7 @@ public class PeopleController {
 
     }
 
+    // Go to parent-creation form
     @GetMapping("/{id}/parents")
     public String addParents(@ModelAttribute("parents") Parents parents,
                              @ModelAttribute("id") @PathVariable("id") Integer id) {
@@ -53,6 +56,7 @@ public class PeopleController {
 
     }
 
+    // Add parents to database if valid
     @PostMapping("{id}/parents")
     public String saveParents(@PathVariable("id") Integer id,
                               @ModelAttribute("parents") @Valid Parents parents,
@@ -68,6 +72,7 @@ public class PeopleController {
 
     }
 
+    // Go to spouse-creation form
     @GetMapping("/{id}/spouse")
     public String addSpouse(@ModelAttribute("person") Person person,
                             @ModelAttribute("id") @PathVariable("id") Integer id) {
@@ -76,6 +81,7 @@ public class PeopleController {
 
     }
 
+    //Add spouse to database if valid
     @PostMapping("{id}/spouse")
     public String saveSpouse(@PathVariable("id") Integer id,
                              @ModelAttribute("person") @Valid Person person,
@@ -90,6 +96,7 @@ public class PeopleController {
 
     }
 
+    // Go to child-creation form
     @GetMapping("/{id}/child")
     public String addChild(@ModelAttribute("person") Person person,
                             @ModelAttribute("id") @PathVariable("id") Integer id) {
@@ -98,6 +105,7 @@ public class PeopleController {
 
     }
 
+    // Add child to database if valid
     @PostMapping("{id}/child")
     public String saveChild(@PathVariable("id") Integer id,
                             @ModelAttribute("person") @Valid Person person,
@@ -111,6 +119,8 @@ public class PeopleController {
 
     }
 
+    // Deletes person, their parents, grandparents, etc.
+    // Same process for person's spouse
     @DeleteMapping("/{id}")
     public String deletePerson(@PathVariable("id") Integer id) {
 
@@ -118,4 +128,5 @@ public class PeopleController {
         return "redirect:";
 
     }
+
 }

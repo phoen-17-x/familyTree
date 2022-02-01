@@ -23,6 +23,8 @@ public class SpringMVCDispatcherServletInitializer extends AbstractAnnotationCon
         return new String[] {"/"};
     }
 
+    ////// Method Filter //////
+
     @Override
     public void onStartup(ServletContext aServletContext) throws ServletException {
         super.onStartup(aServletContext);

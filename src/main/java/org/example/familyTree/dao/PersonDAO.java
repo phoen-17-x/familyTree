@@ -19,12 +19,15 @@ public class PersonDAO {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    // Return random person id
     public Integer getRandomPersonID() {
         return jdbcTemplate.queryForObject(
                 "SELECT id FROM family OFFSET floor(random() * (SELECT COUNT(*) FROM family)) LIMIT 1",
                 Integer.class);
     }
 
+
+    // Searching by id return person
     public Person getPerson(int id) {
 
         return jdbcTemplate.query("SELECT * FROM family WHERE ID = ?",
@@ -33,6 +36,8 @@ public class PersonDAO {
 
     }
 
+
+    // Searching by person's id return list of parents
     public List<Person> getParents(int id) {
 
         return jdbcTemplate.query(
@@ -41,6 +46,7 @@ public class PersonDAO {
 
     }
 
+    // Searching by person's id return list of children
     public List<Person> getChildren(int id) {
 
         return jdbcTemplate.query(
@@ -53,10 +59,12 @@ public class PersonDAO {
 
         Integer childID = parents.getChildID();
 
+        // Add first parent to database and get id
         Integer firstParentID = jdbcTemplate.queryForObject(
                 "INSERT INTO family (name) VALUES (?) RETURNING id",
                 Integer.class, parents.getParentName1());
 
+        // Add first parent to database and get id
         Integer secondParentID = jdbcTemplate.queryForObject(
                 "INSERT INTO family (name, spouse_id) VALUES (?, ?) RETURNING id",
                 Integer.class, parents.getParentName2(), firstParentID);
@@ -65,6 +73,7 @@ public class PersonDAO {
                 "UPDATE family SET spouse_id = ? WHERE id = ?",
                 secondParentID, firstParentID);
 
+        // Add relations
         jdbcTemplate.update(
                 "INSERT INTO relation (parent_id, child_id) VALUES (?, ?), (?, ?)",
                 firstParentID, childID, secondParentID, childID);
@@ -73,6 +82,7 @@ public class PersonDAO {
 
     public void addSpouse(Person person) {
 
+        // Add spouse to database and get id
         Integer spouseID = jdbcTemplate.queryForObject(
                 "INSERT INTO family (name, spouse_id) VALUES (?, ?) RETURNING id",
                 Integer.class, person.getName(), person.getSpouse_id());
@@ -84,6 +94,7 @@ public class PersonDAO {
 
     public void addChild(Person person, Integer id) {
 
+        // Add child to database and get id
         Integer childID = jdbcTemplate.queryForObject(
                 "INSERT INTO family (name) VALUES (?) RETURNING id",
                 Integer.class, person.getName());
@@ -92,22 +103,23 @@ public class PersonDAO {
                 "SELECT spouse_id FROM family WHERE id = ?",
                 Integer.class, id);
 
+        // Add relations
         jdbcTemplate.update(
                 "INSERT INTO relation (parent_id, child_id) VALUES (?, ?), (?, ?)",
                 id, childID, spouseID, childID);
 
     }
 
-    // Deletes person, their parents, grandparents, etc.
+    // Delete person, their parents, grandparents, etc.
     // Same process for person's spouse
     public void deletePerson(Integer id) {
 
-        // Recursively deletes rows from "relation" starting with specified element
+        // Recursively delete rows from "relation" starting with specified element
         String recursiveSQL = "WITH RECURSIVE cte AS (SELECT parent_id, child_id FROM relation WHERE parent_id = ? UNION ALL " +
                 "SELECT t.parent_id, t.child_id FROM relation t INNER JOIN cte c on c.parent_id = t.child_id" +
                 ") DELETE FROM relation WHERE parent_id IN (SELECT parent_id FROM cte)";
 
-        // Deletes everyone who is not in "relation"
+        // Delete everyone who is not in "relation"
         String deleteSQL = "DELETE FROM family WHERE id NOT IN (SELECT parent_id FROM relation) " +
                 "AND id NOT IN (SELECT child_id FROM relation)";
 
