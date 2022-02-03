@@ -1,4 +1,4 @@
-# Famyly Tree
+# Family Tree
 
 Реализовано:
   * Spring MVC configuration
